@@ -123,22 +123,22 @@ HTML_TEMPLATE = '''
         <div class="header">
             <h1>🧁 泡芙AI</h1>
             <p>你的智能内容创作助手</p>
-            <span class="badge">🔥 已服务 1,000+ 用户</span>
+            <span class="badge">🎁 全功能免费使用</span>
         </div>
         
         <!-- 统计 -->
         <div class="stats-bar">
             <div class="stat-item">
-                <div class="stat-value">1,000+</div>
-                <div class="stat-label">服务用户</div>
+                <div class="stat-value">∞</div>
+                <div class="stat-label">免费使用</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">10,000+</div>
-                <div class="stat-label">生成内容</div>
+                <div class="stat-value">6</div>
+                <div class="stat-label">内容类型</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">4.9 ⭐</div>
-                <div class="stat-label">用户好评</div>
+                <div class="stat-value">0</div>
+                <div class="stat-label">元费用</div>
             </div>
         </div>
         
@@ -221,45 +221,38 @@ HTML_TEMPLATE = '''
             </div>
         </div>
         
-        <!-- 定价 -->
+        <!-- 免费推广 -->
         <div class="card">
-            <div class="card-title">💰 价格方案</div>
-            <div class="pricing">
-                <div class="pricing-item">
-                    <h3>单次体验</h3>
-                    <div class="price">¥50<span>/篇</span></div>
-                    <ul>
-                        <li>1篇内容</li>
-                        <li>不满意可修改</li>
-                        <li>24小时交付</li>
-                    </ul>
-                    <button class="btn" onclick="startGenerate()">立即体验</button>
+            <div class="card-title">🎉 限时免费体验！</div>
+            <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #667eea15, #764ba215); border-radius: 20px;">
+                <div style="font-size: 1.4em; color: #667eea; margin-bottom: 15px;">
+                    🚀 现在开始，永久免费使用！
                 </div>
-                <div class="pricing-item featured">
-                    <h3>🔥 月卡推荐</h3>
-                    <div class="price">¥299<span>/月</span></div>
-                    <ul>
-                        <li>30篇内容</li>
-                        <li>无限修改</li>
-                        <li>优先响应</li>
-                        <li>专属客服</li>
-                    </ul>
-                    <button class="btn" onclick="startGenerate()">立即开通</button>
+                <div style="font-size: 1.1em; color: #555; margin-bottom: 20px; line-height: 1.8;">
+                    泡芙AI致力于帮助每一个需要内容创作的人<br>
+                    小红书 · 知乎 · 公众号 · 抖音 · 商业文案<br>
+                    全部免费！无限制使用！
                 </div>
-                <div class="pricing-item">
-                    <h3>企业定制</h3>
-                    <div class="price">¥999<span>/月起</span></div>
-                    <ul>
-                        <li>无限篇数</li>
-                        <li>API接口</li>
-                        <li>专属模型</li>
-                        <li>7×24支持</li>
-                    </ul>
-                    <button class="btn" onclick="startGenerate()">联系我们</button>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <div style="background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 3px 15px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.8em; color: #667eea; font-weight: bold;">∞</div>
+                        <div style="color: #666; font-size: 0.9em;">无限使用</div>
+                    </div>
+                    <div style="background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 3px 15px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.8em; color: #667eea; font-weight: bold;">6</div>
+                        <div style="color: #666; font-size: 0.9em;">种内容类型</div>
+                    </div>
+                    <div style="background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 3px 15px rgba(0,0,0,0.1);">
+                        <div style="font-size: 1.8em; color: #667eea; font-weight: bold;">0</div>
+                        <div style="color: #666; font-size: 0.9em;">元使用费</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="startGenerate()" style="width: auto; padding: 18px 50px;">🚀 立即免费体验</button>
                 </div>
             </div>
         </div>
-        
+
         <!-- 联系 -->
         <div class="card contact">
             <h3>📞 联系我们</h3>
@@ -272,7 +265,7 @@ HTML_TEMPLATE = '''
         
         <!-- 页脚 -->
         <div class="footer">
-            🧁 由泡芙AI驱动 · 您的内容创作团队<br>
+            🧁 由泡芙AI驱动 · 永久免费 · 您的内容创作团队<br>
             © 2026 Paofu AI. All rights reserved.
         </div>
     </div>
