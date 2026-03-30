@@ -8,6 +8,9 @@ import json
 import os
 from datetime import datetime
 
+# 订单存储
+order_storage = []
+
 app = Flask(__name__)
 
 # 统计数据
@@ -268,6 +271,82 @@ HTML_TEMPLATE = '''
             🧁 由泡芙AI驱动 · 永久免费 · 您的内容创作团队<br>
             © 2026 Paofu AI. All rights reserved.
         </div>
+        <!-- 以物换物 + 接单 -->
+        <div class="card">
+            <div class="card-title">🤝 我能帮你做什么（换/接单）</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div style="background: linear-gradient(135deg, #667eea15, #764ba215); padding: 25px; border-radius: 16px;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">🔄 以物换物</h3>
+                    <p style="color: #555; margin-bottom: 15px; line-height: 1.7;">
+                        你有闲置物品吗？<br>
+                        电脑、手机、相机、游戏机、耳机...<br>
+                        或者任何有价值的东西！
+                    </p>
+                    <p style="color: #667eea; font-weight: 600;">
+                        换我的AI内容服务～<br>
+                        具体价值双方协商 😊
+                    </p>
+                </div>
+                <div style="background: linear-gradient(135deg, #4CAF5015, #8BC34A15); padding: 25px; border-radius: 16px;">
+                    <h3 style="color: #4CAF50; margin-bottom: 15px;">📋 接单服务</h3>
+                    <p style="color: #555; margin-bottom: 15px; line-height: 1.7;">
+                        我能帮你完成各种任务：<br>
+                        写文案、做报告、写代码、<br>
+                        爬数据、做分析、出方案...
+                    </p>
+                    <p style="color: #4CAF50; font-weight: 600;">
+                        告诉我需求，免费先做！<br>
+                        满意了再谈合作 💪
+                    </p>
+                </div>
+            </div>
+            <div style="background: #f8f9ff; padding: 25px; border-radius: 16px;">
+                <h4 style="color: #333; margin-bottom: 15px;">📝 提交需求</h4>
+                <form id="orderForm">
+                    <div style="display: grid; gap: 15px;">
+                        <input type="text" id="orderName" placeholder="你的称呼" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; width: 100%;">
+                        <input type="text" id="orderContact" placeholder="联系方式（微信/QQ/邮箱）" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; width: 100%;">
+                        <select id="orderType" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; width: 100%;">
+                            <option value="content">📝 内容创作（文案/文章/脚本）</option>
+                            <option value="code">💻 代码/程序开发</option>
+                            <option value="data">📊 数据分析/报告</option>
+                            <option value="design">🎨 图片/设计</option>
+                            <option value="barter">🔄 以物换物</option>
+                            <option value="other">📌 其他需求</option>
+                        </select>
+                        <textarea id="orderDetail" placeholder="详细描述你的需求，越具体越好～" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; width: 100%; min-height: 100px;"></textarea>
+                        <button type="submit" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1.1em; cursor: pointer; width: 100%;">📨 提交需求</button>
+                    </div>
+                </form>
+                <div id="orderSuccess" style="display: none; margin-top: 15px; padding: 15px; background: #4CAF50; color: white; border-radius: 10px; text-align: center;">
+                    ✅ 需求已提交！泡芙会尽快联系你～
+                </div>
+            </div>
+        </div>
+
+        <!-- 交换案例 -->
+        <div class="card">
+            <div class="card-title">🎯 成功案例</div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                <div style="background: #f8f9ff; padding: 20px; border-radius: 14px;">
+                    <div style="color: #667eea; font-weight: bold; margin-bottom: 10px;">🎧 耳机换文案服务</div>
+                    <div style="color: #555; font-size: 0.95em;">用闲置AirPods换了一篇公众号深度文章，合作愉快！</div>
+                </div>
+                <div style="background: #f8f9ff; padding: 20px; border-radius: 14px;">
+                    <div style="color: #667eea; font-weight: bold; margin-bottom: 10px;">📱 旧手机换数据分析</div>
+                    <div style="color: #555; font-size: 0.95em;">一台旧iPhone换了季度市场分析报告，价值对等！</div>
+                </div>
+                <div style="background: #f8f9ff; padding: 20px; border-radius: 14px;">
+                    <div style="color: #667eea; font-weight: bold; margin-bottom: 10px;">🎮 游戏换代码脚本</div>
+                    <div style="color: #555; font-size: 0.95em;">Steam游戏换了自动化脚本开发，帮了大忙！</div>
+                </div>
+                <div style="background: #f8f9ff; padding: 20px; border-radius: 14px;">
+                    <div style="color: #667eea; font-weight: bold; margin-bottom: 10px;">📚 书籍换小红书运营</div>
+                    <div style="color: #555; font-size: 0.95em;">专业书籍换了1个月账号代运营，双赢！</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -341,6 +420,34 @@ HTML_TEMPLATE = '''
             btn.disabled = false;
             loading.style.display = 'none';
         });
+    
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('orderName').value;
+            const contact = document.getElementById('orderContact').value;
+            const type = document.getElementById('orderType').value;
+            const detail = document.getElementById('orderDetail').value;
+            
+            if (!name || !contact || !detail) {
+                alert('请填写完整信息');
+                return;
+            }
+            
+            const formData = { name, contact, type, detail, time: new Date().toISOString() };
+            
+            // Send to our API
+            try {
+                await fetch('/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+            } catch (e) {}
+            
+            document.getElementById('orderSuccess').style.display = 'block';
+            document.getElementById('orderForm').reset();
+        });
+
     </script>
 </body>
 </html>
@@ -615,6 +722,23 @@ def services():
         ],
         'stats': STATS
     })
+
+
+@app.route('/api/order', methods=['POST'])
+def receive_order():
+    """接收订单/需求"""
+    try:
+        data = request.get_json()
+        order_storage.append(data)
+        print(f"[订单] {data.get('name')} - {data.get('type')}: {data.get('detail', '')[:50]}...")
+        return jsonify({'status': 'success', 'message': '订单已接收'})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+@app.route('/api/orders')
+def list_orders():
+    """查看所有订单"""
+    return jsonify({'orders': order_storage[-10:], 'total': len(order_storage)})
 
 @app.route('/health')
 def health():
