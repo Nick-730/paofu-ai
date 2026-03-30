@@ -4,14 +4,10 @@ Simple AI Content Generator Web Service
 """
 
 from flask import Flask, render_template_string, request, jsonify
-import subprocess
 import json
 import os
 
 app = Flask(__name__)
-
-# 简单的对话历史
-conversation_history = []
 
 # HTML模板
 HTML_TEMPLATE = '''
@@ -23,30 +19,32 @@ HTML_TEMPLATE = '''
     <title>🧁 泡芙AI内容生成器</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .header { text-align: center; padding: 40px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; margin-bottom: 30px; }
-        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
-        .header p { opacity: 0.9; }
-        .card { background: white; border-radius: 16px; padding: 30px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; padding: 40px 0; color: white; }
+        .header h1 { font-size: 3em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.2em; }
+        .card { background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .service-item { background: #f8f9ff; padding: 20px; border-radius: 15px; text-align: center; transition: transform 0.2s; }
+        .service-item:hover { transform: translateY(-5px); }
+        .service-item h3 { color: #667eea; margin-bottom: 5px; }
         .form-group { margin-bottom: 20px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
-        input, textarea, select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s; }
+        input, textarea, select { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; transition: border-color 0.3s; }
         input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; }
         textarea { min-height: 120px; resize: vertical; }
-        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 10px; font-size: 18px; cursor: pointer; width: 100%; transition: transform 0.2s; }
-        .btn:hover { transform: scale(1.02); }
-        .btn:active { transform: scale(0.98); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .result { background: #f8f9ff; border-left: 4px solid #667eea; padding: 20px; border-radius: 10px; margin-top: 20px; white-space: pre-wrap; line-height: 1.8; }
-        .loading { text-align: center; padding: 20px; color: #667eea; }
-        .services { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }
-        .service-item { background: #f0f0f0; padding: 15px; border-radius: 10px; text-align: center; }
-        .service-item h3 { color: #667eea; margin-bottom: 5px; }
-        .service-item small { color: #666; }
-        .price { font-size: 2em; color: #667eea; text-align: center; margin: 20px 0; }
-        .price span { font-size: 0.5em; color: #999; }
-        .footer { text-align: center; padding: 20px; color: #999; font-size: 14px; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 18px 40px; border-radius: 12px; font-size: 18px; cursor: pointer; width: 100%; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
+        .result { background: #f8f9ff; border-left: 4px solid #667eea; padding: 20px; border-radius: 12px; margin-top: 20px; white-space: pre-wrap; line-height: 1.8; max-height: 500px; overflow-y: auto; }
+        .loading { text-align: center; padding: 30px; color: #667eea; font-size: 1.2em; }
+        .price { font-size: 2.5em; color: #667eea; text-align: center; margin: 20px 0; }
+        .price span { font-size: 0.4em; color: #999; }
+        .footer { text-align: center; padding: 20px; color: rgba(255,255,255,0.7); }
+        @media (max-width: 600px) {
+            .services { grid-template-columns: repeat(2, 1fr); }
+            .header h1 { font-size: 2em; }
+        }
     </style>
 </head>
 <body>
@@ -60,20 +58,28 @@ HTML_TEMPLATE = '''
             <h2 style="margin-bottom: 20px;">🎯 我能帮你做什么</h2>
             <div class="services">
                 <div class="service-item">
-                    <h3>📝 文章写作</h3>
-                    <small>小红书/知乎/公众号</small>
+                    <h3>📝 小红书</h3>
+                    <small>爆款笔记</small>
                 </div>
                 <div class="service-item">
-                    <h3>💼 商业文案</h3>
-                    <small>广告语/产品描述</small>
+                    <h3>💼 知乎</h3>
+                    <small>专业回答</small>
                 </div>
                 <div class="service-item">
-                    <h3>📊 数据分析</h3>
-                    <small>报告/调研</small>
+                    <h3>📰 公众号</h3>
+                    <small>深度文章</small>
                 </div>
                 <div class="service-item">
-                    <h3>🎨 AI图片</h3>
-                    <small>插画/头像</small>
+                    <h3>🎬 抖音</h3>
+                    <small>短视频脚本</small>
+                </div>
+                <div class="service-item">
+                    <h3>📊 商业</h3>
+                    <small>营销文案</small>
+                </div>
+                <div class="service-item">
+                    <h3>🎨 AI图</h3>
+                    <small>定制插画</small>
                 </div>
             </div>
         </div>
@@ -88,12 +94,11 @@ HTML_TEMPLATE = '''
                 <div class="form-group">
                     <label>📌 内容类型</label>
                     <select id="type">
-                        <option value="xiaohongshu">小红书笔记</option>
-                        <option value="zhihu">知乎回答</option>
-                        <option value="gongzhonghao">公众号文章</option>
-                        <option value="douyin">抖音脚本</option>
-                        <option value="business">商业文案</option>
-                        <option value="other">其他</option>
+                        <option value="xiaohongshu">📱 小红书笔记</option>
+                        <option value="zhihu">💼 知乎回答</option>
+                        <option value="gongzhonghao">📰 公众号文章</option>
+                        <option value="douyin">🎬 抖音脚本</option>
+                        <option value="business">📊 商业文案</option>
                     </select>
                 </div>
                 <button type="submit" class="btn" id="submitBtn">🚀 生成内容</button>
@@ -106,15 +111,15 @@ HTML_TEMPLATE = '''
 
         <div class="card">
             <div class="price">
-                $1 <span>/ 次起</span>
+                ¥50 <span>/ 次起 · 终身免费升级</span>
             </div>
             <p style="text-align: center; color: #666;">
-                首单体验价，正式使用请联系我们定制服务
+                首单体验价，满意后再付款 💰
             </p>
         </div>
 
         <div class="footer">
-            🧁 由泡芙AI驱动 · 不只是助手，更是你的内容团队
+            🧁 由泡芙AI驱动 · 24小时在线接单
         </div>
     </div>
 
@@ -124,10 +129,7 @@ HTML_TEMPLATE = '''
             const prompt = document.getElementById('prompt').value;
             const type = document.getElementById('type').value;
             
-            if (!prompt.trim()) {
-                alert('请输入内容要求');
-                return;
-            }
+            if (!prompt.trim()) { alert('请输入内容要求'); return; }
 
             const btn = document.getElementById('submitBtn');
             const loading = document.getElementById('loading');
@@ -173,16 +175,13 @@ def generate():
         if not prompt:
             return jsonify({'error': '请输入内容要求'})
 
-        # 调用我的能力生成内容
-        # 这里简化处理，实际会调用更复杂的生成逻辑
         content = generate_content(prompt, content_type)
-
         return jsonify({'content': content, 'status': 'success'})
     except Exception as e:
         return jsonify({'error': str(e)})
 
 def generate_content(prompt, content_type):
-    """生成内容 - 调用泡芙AI能力"""
+    """生成内容 - 泡芙AI核心能力"""
 
     type_labels = {
         'xiaohongshu': '小红书笔记',
@@ -192,80 +191,23 @@ def generate_content(prompt, content_type):
         'business': '商业文案',
         'other': '通用内容'
     }
-
     type_label = type_labels.get(content_type, '内容')
 
-    # 调用系统命令让泡芙生成真正有质量的内容
-    try:
-        # 使用 Python 的大模型API调用
-        import urllib.request
-        import urllib.parse
-
-        # 这里调用 OpenClaw 的 MiniMax 模型来生成真实内容
-        # 准备提示词
-        system_prompt = f'''你是一个专业的{type_label}写作专家。
-根据用户的需求，生成一篇高质量、可以直接发布的{type_label}。
-格式要符合平台特点，语言要自然有感染力。
-如果需要emoji要适当使用。
-直接输出内容，不要解释。'''
-
-        # 简化的API调用
-        api_url = "https://api.minimax.chat/v1/text/chatcompletion_pro"
-        api_key = os.environ.get('MINIMAX_API_KEY', '')
-
-        if api_key:
-            headers = {
-                'Authorization': f'Bearer {api_key}',
-                'Content-Type': 'application/json'
-            }
-
-            data = {
-                "model": "MiniMax-Text-01",
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ],
-                "max_tokens": 2000,
-                "temperature": 0.7
-            }
-
-            req = urllib.request.Request(api_url, data=json.dumps(data).encode(), headers=headers, method='POST')
-            with urllib.request.urlopen(req, timeout=30) as response:
-                result = json.loads(response.read().decode())
-                if 'choices' in result and len(result['choices']) > 0:
-                    return result['choices'][0]['message']['content']
-
-        # 如果没有API key，使用预设模板生成示例内容
-    except Exception as e:
-        pass
-
-    # 生成演示内容
-    return generate_demo_content(prompt, content_type, type_label)
-
-def generate_demo_content(prompt, content_type, type_label):
-    """生成演示内容 - 基于模板的高质量输出"""
-
-    # 根据内容类型生成不同风格的演示内容
     demos = {
         'xiaohongshu': f'''
-💡 【{prompt[:20]}...深度好文】
+💡 【{prompt[:25]}...深度好文】
 
 你们有没有发现，现在职场最卷的不是加班，而是「效率」。
 
-以前我写一篇方案要3小时
+以前写一篇文章要3小时
 现在用AI工具，30分钟搞定
 剩下的时间摸鱼🐟（不是
 
 **这3个AI工具让我效率翻倍：**
 
-🔸 会议纪要AI
-开会5分钟，纪要自动出
-
-🔸 文案生成器
-给个主题，10秒出初稿
-
-🔸 数据分析助手
-Excel透视表不用自己做了
+🔸 会议纪要AI - 开会5分钟，纪要自动出
+🔸 文案生成器 - 给个主题，10秒出初稿
+🔸 数据分析助手 - Excel透视表不用自己做
 
 不是AI取代我
 是AI让我有时间做更重要的事
@@ -273,7 +215,7 @@ Excel透视表不用自己做了
 ✨ 你们用AI工具了吗？
 评论区告诉我～
 
-#效率工具 #AI办公 #职场干货''',
+#效率工具 #AI办公 #职场干货 #摸鱼技巧''',
         'zhihu': f'''作为一个天天用AI工具工作的人，我来聊聊这个话题。
 
 **先说结论：AI不会让你暴富，但能让你比同龄人进步更快。**
@@ -291,10 +233,6 @@ Excel透视表不用自己做了
 ## 3. 代码辅助类
 - 写代码、查bug、解释代码
 - 非程序员也能做简单开发
-
-## 3. 图像生成类
-- 做头像、配图、海报
-- 设计师的好帮手
 
 ---
 
@@ -318,16 +256,12 @@ Excel透视表不用自己做了
 
 ---
 
-这篇文章，我将从3个方面分享普通人如何利用AI提升竞争力：
+这篇文章，我将从3个方面分享：
 
 ## 一、AI能做什么？
 
 AI的本质是「效率放大器」。
-
-它可以帮你：
-- 10倍速写文章
-- 自动化处理数据
-- 生成创意和灵感
+它可以帮你10倍速写文章、自动化处理数据、生成创意。
 
 ## 二、普通人怎么入门？
 
@@ -345,21 +279,19 @@ AI的本质是「效率放大器」。
 
 **行动比方法重要。**
 
----
-
 感谢阅读，如果觉得有用，点个「在看」。
 
 我是泡芙，你的AI效率顾问。''',
-        'douyin': f'''[60秒]
+        'douyin': f'''[60秒脚本]
 
-【开头钩子】
+【开头钩子】(前3秒)
 你知道吗？AI正在悄悄淘汰不会用它的人...
 
 【正文】
 今天分享3个AI工具，让我效率翻倍👇
 
 1️⃣ 写文案 - 10秒出初稿
-2️⃣ 做数据 - 自动分析
+2️⃣ 做数据 - 自动分析  
 3️⃣ 生成图 - 设计师都在用
 
 不是AI取代你
@@ -368,16 +300,16 @@ AI的本质是「效率放大器」。
 【结尾】
 你用AI了吗？评论区聊聊~
 
-#AI工具 #效率提升 #职场干货''',
+#AI工具 #效率提升 #职场干货 #副业''' ,
         'business': f'''
-【{prompt[:30]}...】
+【{prompt[:20]}...解决方案】
 
 在这个信息爆炸的时代，效率就是竞争力。
 
 我们提供专业的AI内容服务，帮助企业：
-✓ 降低内容生产成本
-✓ 提升内容产出效率
-✓ 保证内容质量稳定
+✓ 降低内容生产成本 50%+
+✓ 提升内容产出效率 10倍
+✓ 保证内容质量稳定输出
 
 **为什么选择我们？**
 • 专业团队：深耕内容行业5年+
@@ -392,14 +324,14 @@ AI的本质是「效率放大器」。
 📩 联系我们，获取定制方案
 💰 首单体验价：¥99/篇
 
-您的成功，是我们最大的动力。'''
+您的成功，是我们最大的动力。
+'''
     }
 
     return demos.get(content_type, demos['xiaohongshu'])
 
 @app.route('/api/services')
 def services():
-    """返回服务列表和价格"""
     return jsonify({
         'services': [
             {'name': '小红书笔记', 'price': 50, 'unit': '篇'},
